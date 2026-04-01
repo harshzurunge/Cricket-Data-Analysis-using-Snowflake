@@ -115,6 +115,34 @@ select distinct match_type_number from cricket.clean.delivery_clean_tbl;
 -------------------------------------------------------------------------------------
 -- data insertion testing
 
+
+select distinct team_name from(
+select first_team as team_name from cricket.clean.match_detail_clean
+union all
+select second_team as team_name from cricket.clean.match_detail_clean
+);
+
+select * from cricket.consumption.team_dim;
+
+-------------------------------------------------------------------------------------
+-- team player
+
 select * from cricket.clean.player_clean_tbl limit 10;
 
-select country, player_name from cricket.clean.player_clean_tbl group by country, player_name;
+select country, player_name from cricket.clean.player_clean_tbl group by country,player_name;
+
+select a.country, b.team_id, a.player_name
+from 
+    cricket.clean.player_clean_tbl a join cricket.consumption.team_dim b
+    on a.country = b.team_name
+group by
+    a.country,
+    b.team_id,
+    a.player_name;
+
+
+----------------------------------------------------------
+-- venue dim
+select venue, city from cricket.clean.match_detail_clean group by venue, city;
+
+select * from cricket.consumption.venue_dim;
