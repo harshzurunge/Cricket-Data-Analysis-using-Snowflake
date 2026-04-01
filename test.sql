@@ -111,3 +111,10 @@ lateral flatten (input => d.value:wickets, outer => True) w;
 
 
 select distinct match_type_number from cricket.clean.delivery_clean_tbl;
+
+-------------------------------------------------------------------------------------
+-- data insertion testing
+
+select * from cricket.clean.player_clean_tbl limit 10;
+
+select country, player_name from cricket.clean.player_clean_tbl group by country, player_name;

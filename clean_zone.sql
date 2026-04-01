@@ -53,7 +53,7 @@ select
 create or replace table cricket.clean.player_clean_tbl as 
 select 
     raw.info:match_type_number::int as match_type_number, 
-    p.path::text as country,
+    p.key::text as country,
     team.value:: text as player_name,
     raw.stg_file_name ,
     raw.stg_file_row_number,
@@ -62,6 +62,7 @@ select
 from cricket.raw.match_raw_tbl raw,
 lateral flatten (input => raw.info:players) p,
 lateral flatten (input => p.value) team; 
+
 
 
 alter table cricket.clean.player_clean_tbl
