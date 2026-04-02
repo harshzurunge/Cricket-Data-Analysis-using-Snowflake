@@ -1,0 +1,161 @@
+table VENUE_DIM
+	lineageTag: 0e303676-7c2f-48ef-b549-a8b2216a3fbc
+
+	column VENUE_ID
+		dataType: double
+		lineageTag: 9ace323f-2a3f-4377-ae96-6e2942afbc36
+		summarizeBy: none
+		sourceColumn: VENUE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column VENUE_NAME
+		dataType: string
+		lineageTag: 26e59fff-208c-4d5e-86d1-9c3566f422a0
+		summarizeBy: none
+		sourceColumn: VENUE_NAME
+
+		annotation SummarizationSetBy = Automatic
+
+	column CITY
+		dataType: string
+		lineageTag: ba7b8c15-ef3b-49fa-8747-79fc5d9c2249
+		summarizeBy: none
+		sourceColumn: CITY
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATE
+		dataType: string
+		lineageTag: 1fb8bd26-9e68-4ee7-add4-90300baf5a39
+		summarizeBy: none
+		sourceColumn: STATE
+
+		annotation SummarizationSetBy = Automatic
+
+	column COUNTRY
+		dataType: string
+		lineageTag: e04cc127-a7b2-4bc0-abe4-f02d8785090e
+		summarizeBy: none
+		sourceColumn: COUNTRY
+
+		annotation SummarizationSetBy = Automatic
+
+	column CONTINENT
+		dataType: string
+		lineageTag: 3f22e05e-c0e9-4997-8b8f-4eb017ddad0a
+		summarizeBy: none
+		sourceColumn: CONTINENT
+
+		annotation SummarizationSetBy = Automatic
+
+	column END_NAMES
+		dataType: string
+		lineageTag: abe81f40-e7e9-4947-90ca-ca7dd24392cc
+		summarizeBy: none
+		sourceColumn: END_NAMES
+
+		annotation SummarizationSetBy = Automatic
+
+	column CAPACITY
+		dataType: double
+		lineageTag: 6d50d3a7-1d88-469c-8732-b9218728f20c
+		summarizeBy: sum
+		sourceColumn: CAPACITY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PITCH
+		dataType: string
+		lineageTag: f88f0db7-4b79-4b37-a389-538804e4a5f8
+		summarizeBy: none
+		sourceColumn: PITCH
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLOOD_LIGHT
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e04fedd9-4e30-4b81-b7cd-3189c6a43817
+		summarizeBy: none
+		sourceColumn: FLOOD_LIGHT
+
+		annotation SummarizationSetBy = Automatic
+
+	column ESTABLISHED_DT
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 6c93f638-60ab-48f5-b787-9503040ac4cc
+		summarizeBy: none
+		sourceColumn: ESTABLISHED_DT
+
+		variation Variation
+			isDefault
+			relationship: 19195c5a-e85b-4564-9f71-11d185990a12
+			defaultHierarchy: LocalDateTable_0f677ea5-16e0-4fb1-b2d7-8a112db75d7d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PLAYING_AREA
+		dataType: string
+		lineageTag: 7449876e-3413-4f28-9c7a-644c4573a9ae
+		summarizeBy: none
+		sourceColumn: PLAYING_AREA
+
+		annotation SummarizationSetBy = Automatic
+
+	column OTHER_SPORTS
+		dataType: string
+		lineageTag: eee9166e-8d10-4b7b-8e42-92847181e7cc
+		summarizeBy: none
+		sourceColumn: OTHER_SPORTS
+
+		annotation SummarizationSetBy = Automatic
+
+	column CURATOR
+		dataType: string
+		lineageTag: 5c7a4888-9cc1-4506-8fac-8a7ce646176a
+		summarizeBy: none
+		sourceColumn: CURATOR
+
+		annotation SummarizationSetBy = Automatic
+
+	column LATTITUDE
+		dataType: double
+		lineageTag: a87fff05-b4bc-41bf-b8b4-07cd2b12c60c
+		summarizeBy: sum
+		sourceColumn: LATTITUDE
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LONGITUDE
+		dataType: double
+		lineageTag: 3c319936-2561-4687-ac2b-45f8cb2842af
+		summarizeBy: sum
+		sourceColumn: LONGITUDE
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition VENUE_DIM = m
+		mode: import
+		source =
+				let
+				    Source = Snowflake.Databases("OPOVOGG-WS58563.snowflakecomputing.com","COMPUTE_WH",[Implementation="2.0"]),
+				    CRICKET_Database = Source{[Name="CRICKET",Kind="Database"]}[Data],
+				    CONSUMPTION_Schema = CRICKET_Database{[Name="CONSUMPTION",Kind="Schema"]}[Data],
+				    VENUE_DIM_Table = CONSUMPTION_Schema{[Name="VENUE_DIM",Kind="Table"]}[Data]
+				in
+				    VENUE_DIM_Table
+
+	annotation PBI_ResultType = Table
+

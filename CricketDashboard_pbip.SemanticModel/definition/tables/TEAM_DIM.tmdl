@@ -1,0 +1,34 @@
+table TEAM_DIM
+	lineageTag: b485d757-7df8-43d5-a03c-af9221596c5f
+
+	column TEAM_ID
+		dataType: double
+		lineageTag: fae1c049-5414-410b-b588-9828283e7e63
+		summarizeBy: none
+		sourceColumn: TEAM_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TEAM_NAME
+		dataType: string
+		lineageTag: 002e318f-6dc9-4abe-a8b6-9df06c09cf86
+		summarizeBy: none
+		sourceColumn: TEAM_NAME
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TEAM_DIM = m
+		mode: import
+		source =
+				let
+				    Source = Snowflake.Databases("OPOVOGG-WS58563.snowflakecomputing.com","COMPUTE_WH",[Implementation="2.0"]),
+				    CRICKET_Database = Source{[Name="CRICKET",Kind="Database"]}[Data],
+				    CONSUMPTION_Schema = CRICKET_Database{[Name="CONSUMPTION",Kind="Schema"]}[Data],
+				    TEAM_DIM_Table = CONSUMPTION_Schema{[Name="TEAM_DIM",Kind="Table"]}[Data]
+				in
+				    TEAM_DIM_Table
+
+	annotation PBI_ResultType = Table
+
