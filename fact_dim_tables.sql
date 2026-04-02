@@ -27,15 +27,8 @@ create or replace table referee_dim (
     referee_type text not null
 );
 
+insert into cricket.consumption.referee_dim 
 
-select 
-    info:officials.match_referees[0]::text as match_referee,
-    info:officials.reserve_umpires[0]::text as reserve_umpires,
-    info:officials.tv_umpires[0]::text as tv_umpires,
-    info:officials.umpires[0]::text as first_umpire,
-    info:officials.umpires[1]::text as second_umpire
-from
-    cricket.raw.match_raw_tbl limit 1;
     
 ------------------------------------------------------------------------------------------------------
 -- team_dim
@@ -65,6 +58,7 @@ add constraint fk_team_player_id
 foreign key (team_id)
 references cricket.consumption.team_dim (team_id);
 
+-- select * from cricket.consumption.player_dim;
 
 insert into cricket.consumption.player_dim(team_id, player_name)
 select b.team_id, a.player_name
@@ -171,11 +165,11 @@ CREATE or replace TABLE match_fact (
 -----------------------------------------------------------------------------------------------------------
 -- date_range temp table 
 
-select min(event_date), max(event_date) from cricket.clean.match_detail_clean;
+-- select min(event_date), max(event_date) from cricket.clean.match_detail_clean;
 
 
-CREATE or replace transient TABLE cricket.consumption.date_rnage01 (Date DATE);
-insert into cricket.consumption.date_rnage01 (date) values
+CREATE or replace transient TABLE cricket.clean.date_rnage01 (Date DATE);
+insert into cricket.clean.date_rnage01 (date) values
 ('2023-10-12'), ('2023-10-13'), ('2023-10-14'), ('2023-10-15'), ('2023-10-16'), ('2023-10-17'), ('2023-10-18'), ('2023-10-19'), ('2023-10-20'), ('2023-10-21'), ('2023-10-22'), ('2023-10-23'), ('2023-10-24'), ('2023-10-25'), ('2023-10-26'), ('2023-10-27'), ('2023-10-28'), ('2023-10-29'), ('2023-10-30'), ('2023-10-31'), ('2023-11-01'), ('2023-11-02'), ('2023-11-03'), ('2023-11-04'), ('2023-11-05'), ('2023-11-06'), ('2023-11-07'), ('2023-11-08'), ('2023-11-09'), ('2023-11-10'), ('2023-11-11'), ('2023-11-12'), ('2023-11-13'), ('2023-11-14'), ('2023-11-15'), ('2023-11-16'), ('2023-11-17'), ('2023-11-18'), ('2023-11-19'), ('2023-11-20'), ('2023-11-21'), ('2023-11-22'), ('2023-11-23'), ('2023-11-24'), ('2023-11-25'), ('2023-11-26'), ('2023-11-27'), ('2023-11-28'), ('2023-11-29'), ('2023-11-30'), ('2023-12-01'), ('2023-12-02'), ('2023-12-03'), ('2023-12-04'), ('2023-12-05'), ('2023-12-06'), ('2023-12-07'), ('2023-12-08'), ('2023-12-09'), ('2023-12-10'), ('2023-12-11'), ('2023-12-12'), ('2023-12-13'), ('2023-12-14'), ('2023-12-15'), ('2023-12-16'), ('2023-12-17'), ('2023-12-18'), ('2023-12-19'), ('2023-12-20'), ('2023-12-21'), ('2023-12-22'), ('2023-12-23'), ('2023-12-24'), ('2023-12-25'), ('2023-12-26'), ('2023-12-27'), ('2023-12-28'), ('2023-12-29'), ('2023-12-30'), ('2023-12-31');
 
 
@@ -192,7 +186,6 @@ SELECT
     DAYOFYEAR(Date) AS DayOfYear,
     DAYNAME(Date) AS DayOfWeekName,
     CASE When DAYNAME(Date) IN ('Sat', 'Sun') THEN 1 ELSE 0 END AS IsWeekend
-FROM cricket.consumption.date_rnage01;
+FROM cricket.clean.date_rnage01;
 
 
-select * from cricket.consumption.date_dim;

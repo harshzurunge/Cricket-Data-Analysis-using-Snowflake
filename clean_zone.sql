@@ -27,16 +27,22 @@ select
     info:gender::text as gender,
     info:teams[0]::text as first_team,
     info:teams[1]::text as second_team,
-    case 
-        when info:outcome.winner is not null then 'Result Declared'
-        when info:outcome.result = 'tie' then 'Tie'
-        when info:outcome.result = 'no result' then 'No Result'
-        else info:outcome.result
-    end as matach_result,
-    case 
-        when info:outcome.winner is not null then info:outcome.winner
-        else 'NA'
-    end as winner,   
+case 
+    when info:outcome.winner is not null then 'Result Declared'
+    when info:outcome.result = 'tie' then 'Tie'
+    when info:outcome.result = 'no result' then 'No Result'
+    else info:outcome.result
+end as matach_result,
+case 
+    when info:outcome.winner is not null then info:outcome.winner
+    else 'NA'
+end as winner,   
+
+    info:officials.match_referees[0]::text as match_referee,
+    info:officials.reserve_umpires[0]::text as reserve_umpires,
+    info:officials.tv_umpires[0]::text as tv_umpires,
+    info:officials.umpires[0]::text as first_umpire,
+    info:officials.umpires[1]::text as second_umpire,
 
     info:toss.winner::text as toss_winner,
     initcap(info:toss.decision::text) as toss_decision,
@@ -45,7 +51,7 @@ select
     stg_file_row_number,
     stg_file_hashkey,
     stg_modified_ts
-    from 
+from 
     cricket.raw.match_raw_tbl;
 
 ----------------------------------------------------------------------------------------------------

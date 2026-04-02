@@ -146,3 +146,28 @@ group by
 select venue, city from cricket.clean.match_detail_clean group by venue, city;
 
 select * from cricket.consumption.venue_dim;
+
+select * from cricket.consumption.player_dim;
+
+----------------------------------------------------------------------------------
+
+select 
+    m.match_type_number as match_id,
+    dd.date_id,
+    0 as referee_id
+from
+    cricket.clean.match_detail_clean m
+    join date_dim dd on m.event_date = dd.full_dt
+where
+    m.match_type_number = 4673;
+
+    
+select 
+    m.match_type_number as match_id,
+    dd.date_id,
+    0 as referee_id
+from
+    cricket.clean.match_detail_clean m
+    join date_dim dd on m.event_date = dd.full_dt
+where
+    m.match_type_number = 4673;
