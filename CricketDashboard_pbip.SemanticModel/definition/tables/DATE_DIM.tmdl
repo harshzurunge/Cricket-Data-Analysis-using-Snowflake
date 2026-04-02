@@ -1,0 +1,127 @@
+table DATE_DIM
+	lineageTag: 82ef4523-ecb2-488a-91bd-fd9d46d0a7e3
+
+	column DATE_ID
+		dataType: double
+		lineageTag: 709c7915-6735-4381-8660-70f61d7e18f6
+		summarizeBy: none
+		sourceColumn: DATE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FULL_DT
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 77ebb688-8a03-4e66-85e3-9d026056344a
+		summarizeBy: none
+		sourceColumn: FULL_DT
+
+		variation Variation
+			isDefault
+			relationship: eb0847f5-9e53-4fd0-b069-52859bf3e293
+			defaultHierarchy: LocalDateTable_3b522c7f-61b8-4964-9138-8f7b48dd8111.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DAY
+		dataType: double
+		lineageTag: 475564e7-2d23-417a-8732-84f57fe2d6a8
+		summarizeBy: sum
+		sourceColumn: DAY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MONTH
+		dataType: double
+		lineageTag: 8d2708da-c913-4b8f-b5c7-ed2e3642df04
+		summarizeBy: sum
+		sourceColumn: MONTH
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEAR
+		dataType: double
+		lineageTag: 72084e3a-8d42-484d-9e70-2540ffb189f2
+		summarizeBy: sum
+		sourceColumn: YEAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column QUARTER
+		dataType: double
+		lineageTag: 4e8e4d90-1663-4930-a024-964d6c8cccce
+		summarizeBy: sum
+		sourceColumn: QUARTER
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DAYOFWEEK
+		dataType: double
+		lineageTag: bcb6d81c-5f6b-49fd-a6b2-f7e9182d6d82
+		summarizeBy: sum
+		sourceColumn: DAYOFWEEK
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DAYOFMONTH
+		dataType: double
+		lineageTag: 6de2ab17-329e-4e92-998f-a96faef29c34
+		summarizeBy: sum
+		sourceColumn: DAYOFMONTH
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DAYOFYEAR
+		dataType: double
+		lineageTag: 148ca540-303f-40e8-97cc-96d7234db8cf
+		summarizeBy: sum
+		sourceColumn: DAYOFYEAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DAYOFWEEKNAME
+		dataType: string
+		lineageTag: 43f70344-cb9c-4416-a6cb-673b2b7b1115
+		summarizeBy: none
+		sourceColumn: DAYOFWEEKNAME
+
+		annotation SummarizationSetBy = Automatic
+
+	column ISWEEKEND
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: bad2513b-1a79-4b4b-8772-7416f5212906
+		summarizeBy: none
+		sourceColumn: ISWEEKEND
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DATE_DIM = m
+		mode: import
+		source =
+				let
+				    Source = Snowflake.Databases("OPOVOGG-WS58563.snowflakecomputing.com","COMPUTE_WH",[Implementation="2.0"]),
+				    CRICKET_Database = Source{[Name="CRICKET",Kind="Database"]}[Data],
+				    CONSUMPTION_Schema = CRICKET_Database{[Name="CONSUMPTION",Kind="Schema"]}[Data],
+				    DATE_DIM_Table = CONSUMPTION_Schema{[Name="DATE_DIM",Kind="Table"]}[Data]
+				in
+				    DATE_DIM_Table
+
