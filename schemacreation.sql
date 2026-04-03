@@ -9,6 +9,9 @@ create or replace schema raw;
 create or replace schema clean;
 create or replace schema consumption;
 
+create or replace schema cricket.bronze;
+create or replace schema cricket.silver;
+create or replace schema cricket.gold;
 use schema cricket.land;
 
 -- json file format
