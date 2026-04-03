@@ -21,12 +21,6 @@ comment = 'Json File Format with outer stip array flag true';
 -- creating an internal stage
 create or replace stage cricket.land.my_stg; 
 
--- lets list the internal stage
-list @cricket.land.my_stg;
-
--- check if data is being loaded or not
-list @my_stg/cricket/json/;
-
 -- quick check if data is coming correctly or not
 select 
         t.$1:meta::variant as meta, 

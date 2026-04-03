@@ -15,7 +15,7 @@ create or replace transient table cricket.raw.match_raw_tbl (
 comment = 'This is raw table to store all the json data file with root elements extracted'
 ;
 
--- we have total 2411 JSON files.
+-- we have total 33 JSON files.
 copy into cricket.raw.match_raw_tbl from 
     (
     select 
@@ -30,9 +30,3 @@ copy into cricket.raw.match_raw_tbl from
     from @cricket.land.my_stg/cricket/json (file_format => 'cricket.land.my_json_format') t
     )
     on_error = continue;
-
--- lets execute the count
-select count(*) from cricket.raw.match_raw_tbl; 
-
--- lets run top 10 records.
-select * from cricket.raw.match_raw_tbl limit 10;
