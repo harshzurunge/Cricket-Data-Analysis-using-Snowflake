@@ -40,7 +40,6 @@ select
     d.value:review:type::text as review_type,
 
     e.key::text as extra_type,
-    e.value::number as extra_runs,
     w.value:player_out::text as player_out,
     w.value:kind::text as player_out_kind,
     f.value:name::text as player_out_fielder,
@@ -57,8 +56,6 @@ lateral flatten (input => d.value:extras, outer => True) e,
 lateral flatten (input => d.value:wickets, outer => True) w,
 lateral flatten (input => w.value:fielders, outer => True) f;
 
-select * from cricket.bronze.delivery_table limit 500;
-
 -------------------------------------------------------------------------
 -- match_table
 create or replace transient table cricket.bronze.match_table as
@@ -66,17 +63,8 @@ select
     info:match_type_number::int as match_type_number, 
     info:event.name::text as event_name,
 
-    -- case
-    --     when info:event.match_number::text is not null then info:event.match_number::text
-    --     when info:event.stage::text is not null then info:event.stage::text
-    --     else 'NA'
-    -- end as match_stage,  
     info:event.match_number :: int as match_number, 
-
     info:dates[0]::date as event_date,
-    -- date_part('year',info:dates[0]::date) as event_year,
-    -- date_part('month',info:dates[0]::date) as event_month,
-    -- date_part('day',info:dates[0]::date) as event_day,
     info:match_type::text as match_type,
     info:season::text as season,
     info:team_type::text as team_type,
@@ -87,16 +75,6 @@ select
     info:teams[0]::text as first_team,
     info:teams[1]::text as second_team,
 
-    -- case 
-    --     when info:outcome.winner is not null then 'Result Declared'
-    --     when info:outcome.result = 'tie' then 'Tie'
-    --     when info:outcome.result = 'no result' then 'No Result'
-    --     else info:outcome.result
-    -- end as match_result,
-    -- case 
-    --     when info:outcome.winner is not null then info:outcome.winner
-    --     else 'NA'
-    -- end as winner,
     info:outcome.winner::text as winner,
     info:outcome.by.runs::int as won_by_runs,
     info:outcome.by.wickets::int as won_by_wickets,
@@ -116,5 +94,3 @@ select
     stg_modified_ts
 from 
     cricket.raw.match_raw_tbl;
-
-select * from cricket.bronze.match_table;
