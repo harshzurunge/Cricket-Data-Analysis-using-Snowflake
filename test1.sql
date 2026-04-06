@@ -40,3 +40,5 @@ where match_type_number = 4667 and over = 31;
 select * from cricket.clean.match_detail_clean;
 
 select * from cricket.silver.player_clean limit 100;
+
+describe table cricket.silver.player_clean;
