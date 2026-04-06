@@ -1,0 +1,97 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.2.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY25SU10",
+      "reportVersionAtImport": {
+        "visual": "2.1.0",
+        "report": "3.0.0",
+        "page": "2.3.0"
+      },
+      "type": "SharedResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "publicCustomVisuals": [
+    "Datepicker_1687358625"
+  ],
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "CY25SU10",
+          "path": "BaseThemes/CY25SU10.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "icons8-football-team-9607487684880284484.png",
+          "path": "icons8-football-team-9607487684880284484.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-homepage-904279784807501015.png",
+          "path": "icons8-homepage-904279784807501015.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-menu-10042903930020456327.png",
+          "path": "icons8-menu-10042903930020456327.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-menu-6401167933735743909.png",
+          "path": "icons8-menu-6401167933735743909.png",
+          "type": "Image"
+        },
+        {
+          "name": "icons8-rounded-square-962536354612082218.png",
+          "path": "icons8-rounded-square-962536354612082218.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "7a885bdc6c6d3d778a91",
+  "position": {
+    "x": 28.818869497885519,
+    "y": 473.45285603669066,
+    "z": 1000,
+    "height": 247.01888141044731,
+    "width": 134.4880576567991,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "listSlicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "MATCH_ID"
+                }
+              },
+              "queryRef": "MATCH_FACT.MATCH_ID",
+              "nativeQueryRef": "MATCH_ID",
+              "active": true
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "general": [
+        {
+          "properties": {}
+        }
+      ],
+      "data": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "bba7828f1f267a45eb1f",
+  "position": {
+    "x": 226.43397462624336,
+    "y": 428.166061111442,
+    "z": 16002,
+    "height": 247.01888141044731,
+    "width": 503.64405265352315,
+    "tabOrder": 16002
+  },
+  "visual": {
+    "visualType": "lineClusteredColumnComboChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PLAYER_DIM"
+                    }
+                  },
+                  "Property": "PLAYER_NAME"
+                }
+              },
+              "queryRef": "PLAYER_DIM.PLAYER_NAME",
+              "nativeQueryRef": "Count of PLAYER_NAME",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "MATCH_FACT"
+                        }
+                      },
+                      "Property": "BALLS_PER_OVER"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Sum(MATCH_FACT.BALLS_PER_OVER)",
+              "nativeQueryRef": "Count of BALLS_PER_OVER"
+            }
+          ]
+        },
+        "Y2": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "MATCH_FACT"
+                        }
+                      },
+                      "Property": "EXTRA_BOWLS_PLAYED_BY_TEAM_A"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Sum(MATCH_FACT.EXTRA_BOWLS_PLAYED_BY_TEAM_A)",
+              "nativeQueryRef": "Count of EXTRA_BOWLS_PLAYED_BY_TEAM_A"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "MATCH_FACT"
+                      }
+                    },
+                    "Property": "BALLS_PER_OVER"
+                  }
+                },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

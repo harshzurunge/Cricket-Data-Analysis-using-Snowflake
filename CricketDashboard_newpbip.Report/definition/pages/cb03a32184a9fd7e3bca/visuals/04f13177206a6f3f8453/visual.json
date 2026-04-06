@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "04f13177206a6f3f8453",
+  "position": {
+    "x": 100.17987968312585,
+    "y": 15.095598308416225,
+    "z": 13000,
+    "height": 93.318244088391211,
+    "width": 330.73083566621,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "TEAM_DIM"
+                        }
+                      },
+                      "Property": "TEAM_NAME"
+                    }
+                  },
+                  "Function": 3
+                }
+              },
+              "queryRef": "Min(TEAM_DIM.TEAM_NAME)",
+              "nativeQueryRef": "First TEAM_NAME"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

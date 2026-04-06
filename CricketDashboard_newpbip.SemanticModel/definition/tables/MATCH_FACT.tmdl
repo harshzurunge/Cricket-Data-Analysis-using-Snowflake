@@ -1,0 +1,300 @@
+table MATCH_FACT
+	lineageTag: 33f7e553-9916-4475-9299-f07b2c3665b2
+
+	column MATCH_ID
+		dataType: double
+		lineageTag: c9d5b177-db50-4b38-9407-75e788e31e54
+		summarizeBy: none
+		sourceColumn: MATCH_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DATE_ID
+		dataType: double
+		lineageTag: 0bf82c39-5d0f-44e9-aaaa-ccfa4bec11af
+		summarizeBy: none
+		sourceColumn: DATE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column REFEREE_ID
+		dataType: double
+		lineageTag: 957cb8e6-5ce0-48cd-8a3f-74fd3d4c69e3
+		summarizeBy: count
+		sourceColumn: REFEREE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TEAM_A_ID
+		dataType: double
+		lineageTag: 684a5ef7-d98b-4b53-b452-adae2adc5593
+		summarizeBy: count
+		sourceColumn: TEAM_A_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TEAM_B_ID
+		dataType: double
+		lineageTag: be64132e-4ff2-445b-bfe9-3c0e2633f6fa
+		summarizeBy: count
+		sourceColumn: TEAM_B_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MATCH_TYPE_ID
+		dataType: double
+		lineageTag: d75db6c4-6dbb-473d-8f70-7a906567937c
+		summarizeBy: none
+		sourceColumn: MATCH_TYPE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column VENUE_ID
+		dataType: double
+		lineageTag: 8fe09a1f-ba7b-4240-8561-aaae737e88a2
+		summarizeBy: none
+		sourceColumn: VENUE_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TOTAL_OVERS
+		dataType: double
+		lineageTag: e1bbe45e-38b0-48a0-a002-d88c5b8f9d80
+		summarizeBy: sum
+		sourceColumn: TOTAL_OVERS
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BALLS_PER_OVER
+		dataType: double
+		lineageTag: ea4c2579-6cbb-4983-8e29-f293b1f0c633
+		summarizeBy: sum
+		sourceColumn: BALLS_PER_OVER
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column OVERS_PLAYED_BY_TEAM_A
+		dataType: double
+		lineageTag: 97003983-9372-4573-9d97-0652f5fadda9
+		summarizeBy: sum
+		sourceColumn: OVERS_PLAYED_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BOWLS_PLAYED_BY_TEAM_A
+		dataType: double
+		lineageTag: 79f1d5e4-82a7-411d-bd5d-cb9455cbd8d3
+		summarizeBy: sum
+		sourceColumn: BOWLS_PLAYED_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXTRA_BOWLS_PLAYED_BY_TEAM_A
+		dataType: double
+		lineageTag: f8f5394e-0087-4d71-b2e0-644be0559961
+		summarizeBy: sum
+		sourceColumn: EXTRA_BOWLS_PLAYED_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXTRA_RUNS_SCORED_BY_TEAM_A
+		dataType: double
+		lineageTag: fff1f330-0279-4425-ad2c-84a5e6d71618
+		summarizeBy: sum
+		sourceColumn: EXTRA_RUNS_SCORED_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FOURS_BY_TEAM_A
+		dataType: double
+		lineageTag: 5d6a58f2-27ab-4a6a-bea0-72d9e9b6453c
+		summarizeBy: sum
+		sourceColumn: FOURS_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column SIXES_BY_TEAM_A
+		dataType: double
+		lineageTag: 4cc28086-90d4-445f-b86e-f8b40389327a
+		summarizeBy: sum
+		sourceColumn: SIXES_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TOTAL_SCORE_BY_TEAM_A
+		dataType: double
+		lineageTag: 36dba329-9eb5-4a4d-b013-16c82a9c0df7
+		summarizeBy: sum
+		sourceColumn: TOTAL_SCORE_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WICKET_LOST_BY_TEAM_A
+		dataType: double
+		lineageTag: f13f5377-c570-40f5-a395-34af07b7a1e7
+		summarizeBy: sum
+		sourceColumn: WICKET_LOST_BY_TEAM_A
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column OVERS_PLAYED_BY_TEAM_B
+		dataType: double
+		lineageTag: 5977ed39-99da-4c5b-83d6-bfc0d37246e4
+		summarizeBy: sum
+		sourceColumn: OVERS_PLAYED_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BOWLS_PLAYED_BY_TEAM_B
+		dataType: double
+		lineageTag: 8703ace2-b7e6-4015-91fc-843b12cd9ada
+		summarizeBy: sum
+		sourceColumn: BOWLS_PLAYED_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXTRA_BOWLS_PLAYED_BY_TEAM_B
+		dataType: double
+		lineageTag: 34e97a86-df56-41c0-aa28-f6ac42753023
+		summarizeBy: sum
+		sourceColumn: EXTRA_BOWLS_PLAYED_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXTRA_RUNS_SCORED_BY_TEAM_B
+		dataType: double
+		lineageTag: 57ec04ea-f7d3-4b0e-b284-a3dd34430cb3
+		summarizeBy: sum
+		sourceColumn: EXTRA_RUNS_SCORED_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FOURS_BY_TEAM_B
+		dataType: double
+		lineageTag: 06ddda9a-ef63-4c8e-8c78-9e5c544eb5a6
+		summarizeBy: sum
+		sourceColumn: FOURS_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column SIXES_BY_TEAM_B
+		dataType: double
+		lineageTag: 1255f534-c6db-4c36-9f34-184df3a5663e
+		summarizeBy: sum
+		sourceColumn: SIXES_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TOTAL_SCORE_BY_TEAM_B
+		dataType: double
+		lineageTag: a0e8582b-9577-4702-9c92-8986f4b09a52
+		summarizeBy: sum
+		sourceColumn: TOTAL_SCORE_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WICKET_LOST_BY_TEAM_B
+		dataType: double
+		lineageTag: 4eab9bab-3ae1-48bd-9fbd-be683121916e
+		summarizeBy: sum
+		sourceColumn: WICKET_LOST_BY_TEAM_B
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TOSS_WINNER_TEAM_ID
+		dataType: double
+		lineageTag: 8770cefd-0b60-4d95-91d2-1e3fe09a2071
+		summarizeBy: count
+		sourceColumn: TOSS_WINNER_TEAM_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TOSS_DECISION
+		dataType: string
+		lineageTag: 0535695a-a180-4358-979f-f3b704edc8dc
+		summarizeBy: none
+		sourceColumn: TOSS_DECISION
+
+		annotation SummarizationSetBy = Automatic
+
+	column MATCH_RESULT
+		dataType: string
+		lineageTag: 14b40340-94dc-4e9d-b651-eb2cccabbee7
+		summarizeBy: none
+		sourceColumn: MATCH_RESULT
+
+		annotation SummarizationSetBy = Automatic
+
+	column WINNER_TEAM_ID
+		dataType: double
+		lineageTag: fdf38323-acce-4e89-ba2d-a7c708d6cbc2
+		summarizeBy: count
+		sourceColumn: WINNER_TEAM_ID
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition MATCH_FACT = m
+		mode: import
+		source =
+				let
+				    Source = Snowflake.Databases("OPOVOGG-WS58563.snowflakecomputing.com","COMPUTE_WH",[Implementation="2.0"]),
+				    CRICKET_Database = Source{[Name="CRICKET",Kind="Database"]}[Data],
+				    CONSUMPTION_Schema = CRICKET_Database{[Name="CONSUMPTION",Kind="Schema"]}[Data],
+				    MATCH_FACT_Table = CONSUMPTION_Schema{[Name="MATCH_FACT",Kind="Table"]}[Data]
+				in
+				    MATCH_FACT_Table
+

@@ -1,0 +1,218 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "904745caf43ff393d5a3",
+  "position": {
+    "x": 41.68711956628109,
+    "y": 73.754134617266544,
+    "z": 0,
+    "height": 383.20082985927621,
+    "width": 431.30135243575438,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "MATCH_ID"
+                }
+              },
+              "queryRef": "MATCH_FACT.MATCH_ID",
+              "nativeQueryRef": "MATCH_ID",
+              "format": "G"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "TEAM_DIM"
+                    }
+                  },
+                  "Property": "TEAM_NAME"
+                }
+              },
+              "queryRef": "TEAM_DIM.TEAM_NAME",
+              "nativeQueryRef": "TEAM_NAME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "TEAM_A_ID"
+                }
+              },
+              "queryRef": "CountNonNull(MATCH_FACT.TEAM_A_ID)",
+              "nativeQueryRef": "TEAM_A_ID",
+              "format": "G"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "TEAM_B_ID"
+                }
+              },
+              "queryRef": "CountNonNull(MATCH_FACT.TEAM_B_ID)",
+              "nativeQueryRef": "TEAM_B_ID",
+              "format": "G"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "TOSS_WINNER_TEAM_ID"
+                }
+              },
+              "queryRef": "CountNonNull(MATCH_FACT.TOSS_WINNER_TEAM_ID)",
+              "nativeQueryRef": "TOSS_WINNER_TEAM_ID",
+              "format": "G"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MATCH_FACT"
+                    }
+                  },
+                  "Property": "VENUE_ID"
+                }
+              },
+              "queryRef": "MATCH_FACT.VENUE_ID",
+              "nativeQueryRef": "VENUE_ID1",
+              "format": "G"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "MATCH_FACT"
+                  }
+                },
+                "Property": "TEAM_A_ID"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "49.205479917142995D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "CountNonNull(MATCH_FACT.TEAM_A_ID)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "54.43340938286891D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "CountNonNull(MATCH_FACT.TEAM_B_ID)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "50.52456384902136D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "CountNonNull(MATCH_FACT.TOSS_WINNER_TEAM_ID)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "52.40825347251318D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "MATCH_FACT.VENUE_ID"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "120.67443069564314D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "MATCH_FACT.MATCH_ID"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "86.39664904686175D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TEAM_DIM.TEAM_NAME"
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

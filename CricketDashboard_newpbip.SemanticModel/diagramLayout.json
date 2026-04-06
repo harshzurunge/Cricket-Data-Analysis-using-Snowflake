@@ -1,0 +1,113 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 39.913242830892081,
+        "y": 146.34856021862385
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 393.29778416537607,
+            "y": 734.78786985126158
+          },
+          "nodeIndex": "DATE_DIM",
+          "nodeLineageTag": "82ef4523-ecb2-488a-91bd-fd9d46d0a7e3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 772.49351962815922,
+            "y": 313.13321212184422
+          },
+          "nodeIndex": "DELIVERY_FACT",
+          "nodeLineageTag": "e6778ef0-d876-4a35-86e9-9caac905557e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 385.71914209968827,
+            "y": 303.71062179566911
+          },
+          "nodeIndex": "MATCH_FACT",
+          "nodeLineageTag": "33f7e553-9916-4475-9299-f07b2c3665b2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 487.63325305193979
+          },
+          "nodeIndex": "MATCH_TYPE_DIM",
+          "nodeLineageTag": "df8b5fc7-9c06-481b-b7ee-babf5b687a4b",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1390.4269472226881,
+            "y": 152.55396893070153
+          },
+          "nodeIndex": "PLAYER_DIM",
+          "nodeLineageTag": "15113932-c6de-400a-ab03-058dbf5c252f",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 970.85948661371754,
+            "y": 54.135091759209629
+          },
+          "nodeIndex": "TEAM_DIM",
+          "nodeLineageTag": "b485d757-7df8-43d5-a03c-af9221596c5f",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 117.8833421342546,
+            "y": 26.367682563455375
+          },
+          "nodeIndex": "VENUE_DIM",
+          "nodeLineageTag": "0e303676-7c2f-48ef-b549-a8b2216a3fbc",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 80.17389149656519,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "e4f7506ce884f2f63149",
+  "position": {
+    "x": 514.62266960509851,
+    "y": 74.105664423134186,
+    "z": 2000,
+    "height": 382.87926618619332,
+    "width": 231.92328310203109,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "TEAM_DIM"
+                    }
+                  },
+                  "Property": "TEAM_NAME"
+                }
+              },
+              "queryRef": "TEAM_DIM.TEAM_NAME",
+              "nativeQueryRef": "TEAM_NAME"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "VENUE_DIM"
+                    }
+                  },
+                  "Property": "CITY"
+                }
+              },
+              "queryRef": "VENUE_DIM.CITY",
+              "nativeQueryRef": "CITY"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "92.78067159218119D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TEAM_DIM.TEAM_NAME"
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
