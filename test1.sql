@@ -26,3 +26,15 @@ from cricket.raw.match_raw_tbl m
 group by over
 order by over;
 
+
+select * from cricket.clean.delivery_clean_tbl
+where match_type_number = 4667;
+
+select distinct(extra_type) from cricket.consumption.delivery_fact
+where match_id = 4667;
+
+select * from cricket.clean.delivery_clean_tbl
+where match_type_number = 4667 and over = 31;
+
+
+select * from cricket.clean.match_detail_clean;
