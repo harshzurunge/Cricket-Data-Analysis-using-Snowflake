@@ -2,6 +2,8 @@ use role sysadmin;
 use warehouse compute_wh;
 use schema cricket.clean;
 
+select count(*) from cricket.raw.match_raw_tbl; 
+select * from cricket.raw.match_raw_tbl limit 10;
 -----------------------------------------------------------------------------------------------------------
 -- cricket.raw.match_raw_tbl raw
 
