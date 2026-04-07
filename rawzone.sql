@@ -1,32 +1,84 @@
-use role sysadmin;
-use warehouse compute_wh;
-use schema cricket.raw;
+/*
+==========================================================
+📌 RAW LAYER - PRODUCTION GRADE
+==========================================================
+Purpose:
+- Store raw JSON data as-is
+- Maintain ingestion metadata
+- Enable incremental & traceable loads
+==========================================================
+*/
 
--- lets create a table inside the raw layer
-create or replace transient table cricket.raw.match_raw_tbl (
-    meta object not null,
-    info variant not null,
-    innings ARRAY not null,
-    stg_file_name text not null,
-    stg_file_row_number int not null,
-    stg_file_hashkey text not null,
-    stg_modified_ts timestamp not null
+----------------------------------------------------------
+-- 🔹 STEP 1: SET CONTEXT
+----------------------------------------------------------
+USE ROLE SYSADMIN;
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE CRICKET;
+USE SCHEMA CRICKET.RAW;
+
+----------------------------------------------------------
+-- 🔹 STEP 2: CREATE RAW TABLE (SAFE)
+----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS MATCH_RAW_TBL (
+    META OBJECT NOT NULL,
+    INFO VARIANT NOT NULL,
+    INNINGS ARRAY NOT NULL,
+
+    -- File Metadata (Important for lineage)
+    STG_FILE_NAME STRING NOT NULL,
+    STG_FILE_ROW_NUMBER INT NOT NULL,
+    STG_FILE_HASHKEY STRING NOT NULL,
+    STG_MODIFIED_TS TIMESTAMP NOT NULL,
+
+    -- Audit Columns
+    LOAD_TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
 )
-comment = 'This is raw table to store all the json data file with root elements extracted'
-;
+COMMENT = 'Raw table storing JSON cricket data with metadata for lineage and tracking';
 
--- we have total 33 JSON files.
-copy into cricket.raw.match_raw_tbl from 
-    (
-    select 
-        t.$1:meta::object as meta, 
-        t.$1:info::variant as info, 
-        t.$1:innings::array as innings, 
-        --
-        metadata$filename,
-        metadata$file_row_number,
-        metadata$file_content_key,
-        metadata$file_last_modified
-    from @cricket.land.my_stg/cricket/json (file_format => 'cricket.land.my_json_format') t
-    )
-    on_error = continue;
+----------------------------------------------------------
+-- 🔹 STEP 3: COPY INTO (INCREMENTAL LOAD)
+----------------------------------------------------------
+/*
+Key Improvements:
+- Avoid duplicate loads using METADATA$FILE_CONTENT_KEY
+- Load only new/unprocessed files
+*/
+
+COPY INTO MATCH_RAW_TBL
+FROM (
+    SELECT 
+        t.$1:meta::OBJECT,
+        t.$1:info::VARIANT,
+        t.$1:innings::ARRAY,
+
+        METADATA$FILENAME,
+        METADATA$FILE_ROW_NUMBER,
+        METADATA$FILE_CONTENT_KEY,   -- unique hash
+        METADATA$FILE_LAST_MODIFIED
+
+    FROM @CRICKET.LAND.MY_STG/CRICKET/JSON
+    (FILE_FORMAT => 'CRICKET.LAND.MY_JSON_FORMAT') t
+)
+ON_ERROR = 'CONTINUE'
+FORCE = FALSE;   -- prevents reloading same files
+
+----------------------------------------------------------
+-- 🔹 STEP 4: OPTIONAL DEDUP CHECK (GOOD PRACTICE)
+----------------------------------------------------------
+/*
+You can periodically check duplicates
+*/
+-- SELECT STG_FILE_HASHKEY, COUNT(*)
+-- FROM MATCH_RAW_TBL
+-- GROUP BY 1
+-- HAVING COUNT(*) > 1;
+
+----------------------------------------------------------
+-- 🔹 STEP 5: VALIDATION QUERY
+----------------------------------------------------------
+SELECT COUNT(*) AS TOTAL_RECORDS FROM MATCH_RAW_TBL;
+
+----------------------------------------------------------
+-- ✅ END OF RAW LAYER
+----------------------------------------------------------
