@@ -54,9 +54,5 @@ select
     first_umpire,
     second_umpire,
     toss_winner,
-    toss_decision,
-    stg_file_name,
-    stg_file_row_number,
-    stg_file_hashkey,
-    stg_modified_ts
+    toss_decision
 from cricket.silver.match_clean m;
