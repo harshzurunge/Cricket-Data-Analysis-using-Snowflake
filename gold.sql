@@ -1,22 +1,3 @@
-/*
-==========================================================
-📌 GOLD LAYER - OPTIMIZED (VIEW-BASED ARCHITECTURE)
-📌 PROJECT: ICC Men's Cricket World Cup 2023 Analysis
-==========================================================
-
-📌 PURPOSE:
-- Provide clean, business-ready data
-- Expose curated datasets for reporting (Power BI, dashboards)
-- Keep structure simple (no star schema as per use case)
-
-✅ FEATURES:
-- Lightweight views (no data duplication)
-- Standardized column selection
-- Consistent naming conventions
-- Derived columns for analytics
-==========================================================
-*/
-
 ----------------------------------------------------------
 -- 🔹 STEP 1: SET CONTEXT
 ----------------------------------------------------------
@@ -30,13 +11,6 @@ USE SCHEMA CRICKET.GOLD;
 ----------------------------------------------------------
 -- 🔹 STEP 2: PLAYER VIEW
 ----------------------------------------------------------
-/*
-Purpose:
-- Provides cleaned player-level data
-- Directly sourced from Silver layer
-- Used for player analysis and filtering
-*/
-
 CREATE OR REPLACE VIEW PLAYER AS
 SELECT
     MATCH_TYPE_NUMBER,
@@ -45,13 +19,12 @@ SELECT
 FROM CRICKET.SILVER.PLAYER_CLEAN;
 
 ----------------------------------------------------------
--- 🔹 STEP 3: DELIVERY VIEW
+-- 🔹 STEP 3: DELIVERY VIEW (ENHANCED)
 ----------------------------------------------------------
 /*
-Purpose:
-- Provides ball-by-ball level data
-- Core dataset for most analytics
-- Includes derived flags for easier reporting
+Enhancements:
+- Removed syntax error
+- Added analytics-ready flags
 */
 
 CREATE OR REPLACE VIEW DELIVERY AS
@@ -79,14 +52,8 @@ SELECT
 FROM CRICKET.SILVER.DELIVERY_CLEAN;
 
 ----------------------------------------------------------
--- 🔹 STEP 4: MATCH VIEW
+-- 🔹 STEP 4: MATCH VIEW (GOOD)
 ----------------------------------------------------------
-/*
-Purpose:
-- Provides match-level metadata
-- Includes derived date attributes for filtering
-*/
-
 CREATE OR REPLACE VIEW MATCH AS
 SELECT
     MATCH_TYPE_NUMBER,
@@ -125,22 +92,6 @@ SELECT
     TOSS_DECISION
 
 FROM CRICKET.SILVER.MATCH_CLEAN;
-
-----------------------------------------------------------
--- 🔹 STEP 6: PERFORMANCE OPTIMIZATION (OPTIONAL)
-----------------------------------------------------------
-
--- If queries are heavy, you can convert views to materialized views
--- Example:
-
-CREATE MATERIALIZED VIEW DELIVERY_MV AS
-SELECT * FROM DELIVERY;
-
-----------------------------------------------------------
--- ✅ END OF GOLD LAYER
-----------------------------------------------------------
-
-
 
 
 ---------------------------------------------------------------------------

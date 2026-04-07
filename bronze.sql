@@ -40,7 +40,7 @@ USING (
     )
 
     SELECT
-        TRY_TO_NUMBER(raw.info:match_type_number) AS MATCH_TYPE_NUMBER,
+        TRY_TO_NUMBER(raw.info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
         p.key::STRING AS COUNTRY,
         team.value::STRING AS PLAYER_NAME,
 
@@ -90,7 +90,7 @@ USING (
     INNINGS_LEVEL AS (
         SELECT
             m.*,
-            TRY_TO_NUMBER(m.info:match_type_number) AS MATCH_TYPE_NUMBER,
+            TRY_TO_NUMBER(m.info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
             i.value AS INNINGS_DATA
         FROM BASE_RAW m,
         LATERAL FLATTEN(input => m.innings) i
@@ -115,7 +115,7 @@ USING (
         SELECT
             MATCH_TYPE_NUMBER,
             TEAM_NAME,
-            TRY_TO_NUMBER(OVER_DATA:over) AS OVER,
+            TRY_TO_NUMBER(OVER_DATA:over::STRING) AS OVER,
             d.value AS DELIVERY_DATA,
 
             STG_FILE_NAME,
@@ -137,9 +137,9 @@ USING (
         DELIVERY_DATA:batter::STRING AS BATTER,
         DELIVERY_DATA:non_striker::STRING AS NON_STRIKER,
 
-        TRY_TO_NUMBER(DELIVERY_DATA:runs.batter) AS RUNS,
-        TRY_TO_NUMBER(DELIVERY_DATA:runs.extras) AS EXTRAS,
-        TRY_TO_NUMBER(DELIVERY_DATA:runs.total) AS TOTAL,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.batter::STRING) AS RUNS,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.extras::STRING) AS EXTRAS,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.total::STRING) AS TOTAL,
 
         DELIVERY_DATA:review:by::STRING AS REVIEW_BY_TEAM,
         DELIVERY_DATA:review:decision::STRING AS REVIEW_DECISION,
@@ -188,7 +188,6 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.STG_FILE_HASHKEY,
     src.STG_MODIFIED_TS
 );
-
 ----------------------------------------------------------
 -- 🔹 STEP 5: MATCH TABLE (NO CHANGE)
 ----------------------------------------------------------
@@ -200,14 +199,14 @@ USING (
     )
 
     SELECT
-        TRY_TO_NUMBER(info:match_type_number) AS MATCH_TYPE_NUMBER,
+        TRY_TO_NUMBER(info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
         info:event.name::STRING AS EVENT_NAME,
-        TRY_TO_NUMBER(info:event.match_number) AS MATCH_NUMBER,
-        TRY_TO_DATE(info:dates[0]) AS EVENT_DATE,
+        TRY_TO_NUMBER(info:event.match_number::STRING) AS MATCH_NUMBER,
+        TRY_TO_DATE(info:dates[0]::STRING) AS EVENT_DATE,
         info:match_type::STRING AS MATCH_TYPE,
         info:season::STRING AS SEASON,
         info:team_type::STRING AS TEAM_TYPE,
-        TRY_TO_NUMBER(info:overs) AS OVERS,
+        TRY_TO_NUMBER(info:overs::STRING) AS OVERS,
         info:city::STRING AS CITY,
         info:venue::STRING AS VENUE,
         info:gender::STRING AS GENDER,
@@ -215,8 +214,8 @@ USING (
         info:teams[1]::STRING AS SECOND_TEAM,
 
         info:outcome.winner::STRING AS WINNER,
-        TRY_TO_NUMBER(info:outcome.by.runs) AS WON_BY_RUNS,
-        TRY_TO_NUMBER(info:outcome.by.wickets) AS WON_BY_WICKETS,
+        TRY_TO_NUMBER(info:outcome.by.runs::STRING) AS WON_BY_RUNS,
+        TRY_TO_NUMBER(info:outcome.by.wickets::STRING) AS WON_BY_WICKETS,
         info:player_of_match[0]::STRING AS PLAYER_OF_MATCH,
 
         info:officials.match_referees[0]::STRING AS MATCH_REFEREE,
@@ -277,7 +276,7 @@ CLUSTER BY (MATCH_TYPE_NUMBER, OVER);
 
 ----------------------------------------------------------
 -- ✅ END
-----------------------------------------------------------
+--------------------------------------------------
 
 -- use role sysadmin;
 -- use warehouse compute_wh;

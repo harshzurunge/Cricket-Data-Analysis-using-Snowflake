@@ -19,7 +19,7 @@
 ----------------------------------------------------------
 -- 🔹 STEP 1: SET CONTEXT
 ----------------------------------------------------------
-USE DATABASE CRICKET;
+USE DATABASE CRICKET; 
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
 
@@ -27,16 +27,8 @@ CREATE SCHEMA IF NOT EXISTS CRICKET.SILVER;
 USE SCHEMA CRICKET.SILVER;
 
 ----------------------------------------------------------
--- 🔹 STEP 2: CREATE COMMON CLEANING FUNCTION
+-- 🔹 CLEANING FUNCTION (GOOD - NO CHANGE)
 ----------------------------------------------------------
-/*
-This function:
-- Removes extra spaces
-- Handles NULL / empty values
-- Applies proper casing
-- Replaces blanks with default values
-*/
-
 CREATE OR REPLACE FUNCTION CLEAN_TEXT(input STRING, default_val STRING)
 RETURNS STRING
 AS
@@ -49,87 +41,8 @@ $$
 $$;
 
 ----------------------------------------------------------
--- 🔹 STEP 3: CREATE TARGET TABLES (SAFE)
+-- 🔹 PLAYER CLEAN
 ----------------------------------------------------------
-
--- PLAYER CLEAN TABLE
-CREATE TABLE IF NOT EXISTS PLAYER_CLEAN (
-    MATCH_TYPE_NUMBER INT,
-    COUNTRY STRING,
-    PLAYER_NAME STRING,
-    STG_FILE_NAME STRING,
-    STG_FILE_HASHKEY STRING,
-    STG_MODIFIED_TS TIMESTAMP
-);
-
--- DELIVERY CLEAN TABLE
-CREATE TABLE IF NOT EXISTS DELIVERY_CLEAN (
-    MATCH_TYPE_NUMBER INT,
-    TEAM_NAME STRING,
-    OVER INT,
-    BOWLER STRING,
-    BATTER STRING,
-    NON_STRIKER STRING,
-    RUNS INT,
-    EXTRAS INT,
-    TOTAL INT,
-    EXTRA_TYPE STRING,
-    PLAYER_OUT STRING,
-    PLAYER_OUT_KIND STRING,
-    PLAYER_OUT_FIELDER STRING,
-    REVIEW_BY_TEAM STRING,
-    REVIEW_DECISION STRING,
-    REVIEW_TYPE STRING,
-    STG_FILE_NAME STRING,
-    STG_FILE_ROW_NUMBER INT,
-    STG_FILE_HASHKEY STRING,
-    STG_MODIFIED_TS TIMESTAMP
-);
-
--- MATCH CLEAN TABLE
-CREATE TABLE IF NOT EXISTS MATCH_CLEAN (
-    MATCH_TYPE_NUMBER INT,
-    EVENT_NAME STRING,
-    MATCH_NUMBER INT,
-    EVENT_DATE DATE,
-    EVENT_YEAR INT,
-    EVENT_MONTH INT,
-    EVENT_DAY INT,
-    MATCH_TYPE STRING,
-    SEASON STRING,
-    TEAM_TYPE STRING,
-    OVERS INT,
-    CITY STRING,
-    VENUE STRING,
-    GENDER STRING,
-    FIRST_TEAM STRING,
-    SECOND_TEAM STRING,
-    WINNER STRING,
-    WON_BY_RUNS INT,
-    WON_BY_WICKETS INT,
-    PLAYER_OF_MATCH STRING,
-    MATCH_REFEREE STRING,
-    RESERVE_UMPIRES STRING,
-    TV_UMPIRES STRING,
-    FIRST_UMPIRE STRING,
-    SECOND_UMPIRE STRING,
-    TOSS_WINNER STRING,
-    TOSS_DECISION STRING,
-    STG_FILE_NAME STRING,
-    STG_FILE_ROW_NUMBER INT,
-    STG_FILE_HASHKEY STRING,
-    STG_MODIFIED_TS TIMESTAMP
-);
-
-----------------------------------------------------------
--- 🔹 STEP 4: PLAYER CLEAN (INCREMENTAL LOAD)
-----------------------------------------------------------
-/*
-- Cleans player names & country
-- Uses UDF to avoid repetition
-- Inserts only new records
-*/
-
 MERGE INTO PLAYER_CLEAN tgt
 USING (
     SELECT
@@ -156,44 +69,49 @@ WHEN NOT MATCHED THEN INSERT VALUES (
 );
 
 ----------------------------------------------------------
--- 🔹 STEP 5: DELIVERY CLEAN (INCREMENTAL LOAD)
+-- 🔹 DELIVERY CLEAN (FIXED)
 ----------------------------------------------------------
-/*
-- Cleans team, player names
-- Handles null numeric values
-- Standardizes extra & wicket info
-*/
-
 MERGE INTO DELIVERY_CLEAN tgt
 USING (
     SELECT
         d.match_type_number,
+
         CLEAN_TEXT(d.team_name, 'Unknown') AS team_name,
-        COALESCE(TRY_TO_NUMBER(d.over), 0) AS over,
+
+        -- ✅ TRUST BRONZE BUT KEEP SAFE
+        COALESCE(d.over, 0) AS over,
+
         CLEAN_TEXT(d.bowler, 'Unknown') AS bowler,
         CLEAN_TEXT(d.batter, 'Unknown') AS batter,
         CLEAN_TEXT(d.non_striker, 'Unknown') AS non_striker,
-        COALESCE(TRY_TO_NUMBER(d.runs), 0) AS runs,
-        COALESCE(TRY_TO_NUMBER(d.extras), 0) AS extras,
-        COALESCE(TRY_TO_NUMBER(d.total), 0) AS total,
+
+        COALESCE(d.runs, 0) AS runs,
+        COALESCE(d.extras, 0) AS extras,
+        COALESCE(d.total, 0) AS total,
+
         CLEAN_TEXT(d.extra_type, 'None') AS extra_type,
         CLEAN_TEXT(d.player_out, 'None') AS player_out,
         CLEAN_TEXT(d.player_out_kind, 'None') AS player_out_kind,
         CLEAN_TEXT(d.player_out_fielder, 'None') AS player_out_fielder,
+
         CLEAN_TEXT(d.review_by_team, 'None') AS review_by_team,
         CLEAN_TEXT(d.review_decision, 'None') AS review_decision,
         CLEAN_TEXT(d.review_type, 'None') AS review_type,
+
         d.stg_file_name,
         d.stg_file_row_number,
         d.stg_file_hashkey,
         d.stg_modified_ts
+
     FROM CRICKET.BRONZE.DELIVERY_TABLE d
     WHERE d.match_type_number IS NOT NULL
 ) src
 
+-- ✅ STRONGER UNIQUE KEY
 ON tgt.stg_file_hashkey = src.stg_file_hashkey
 AND tgt.over = src.over
 AND tgt.batter = src.batter
+AND tgt.bowler = src.bowler
 
 WHEN NOT MATCHED THEN INSERT VALUES (
     src.match_type_number,
@@ -219,22 +137,18 @@ WHEN NOT MATCHED THEN INSERT VALUES (
 );
 
 ----------------------------------------------------------
--- 🔹 STEP 6: MATCH CLEAN (INCREMENTAL LOAD)
+-- 🔹 MATCH CLEAN (FIXED)
 ----------------------------------------------------------
-/*
-- Cleans match-level data
-- Creates derived date columns (year, month, day)
-- Standardizes categorical values
-*/
-
 MERGE INTO MATCH_CLEAN tgt
 USING (
     SELECT
         m.match_type_number,
+
         CLEAN_TEXT(m.event_name, 'Unknown') AS event_name,
         COALESCE(m.match_number, 0) AS match_number,
 
         COALESCE(m.event_date, TO_DATE('1900-01-01')) AS event_date,
+
         DATE_PART(YEAR, COALESCE(m.event_date, TO_DATE('1900-01-01'))) AS event_year,
         DATE_PART(MONTH, COALESCE(m.event_date, TO_DATE('1900-01-01'))) AS event_month,
         DATE_PART(DAY, COALESCE(m.event_date, TO_DATE('1900-01-01'))) AS event_day,
@@ -242,21 +156,28 @@ USING (
         CLEAN_TEXT(m.match_type, 'Unknown') AS match_type,
         CLEAN_TEXT(m.season, 'Unknown') AS season,
         CLEAN_TEXT(m.team_type, 'Unknown') AS team_type,
+
         COALESCE(m.overs, 0) AS overs,
+
         CLEAN_TEXT(m.city, 'Unknown') AS city,
         CLEAN_TEXT(m.venue, 'Unknown') AS venue,
         CLEAN_TEXT(m.gender, 'Unknown') AS gender,
+
         CLEAN_TEXT(m.first_team, 'Unknown') AS first_team,
         CLEAN_TEXT(m.second_team, 'Unknown') AS second_team,
         CLEAN_TEXT(m.winner, 'Unknown') AS winner,
+
         COALESCE(m.won_by_runs, 0) AS won_by_runs,
         COALESCE(m.won_by_wickets, 0) AS won_by_wickets,
+
         CLEAN_TEXT(m.player_of_match, 'Unknown') AS player_of_match,
+
         CLEAN_TEXT(m.match_referee, 'Unknown') AS match_referee,
         CLEAN_TEXT(m.reserve_umpires, 'Unknown') AS reserve_umpires,
         CLEAN_TEXT(m.tv_umpires, 'Unknown') AS tv_umpires,
         CLEAN_TEXT(m.first_umpire, 'Unknown') AS first_umpire,
         CLEAN_TEXT(m.second_umpire, 'Unknown') AS second_umpire,
+
         CLEAN_TEXT(m.toss_winner, 'Unknown') AS toss_winner,
         CLEAN_TEXT(m.toss_decision, 'Unknown') AS toss_decision,
 
@@ -304,7 +225,6 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.stg_file_hashkey,
     src.stg_modified_ts
 );
-
 ----------------------------------------------------------
 -- ✅ END OF SILVER LAYER
 ----------------------------------------------------------
