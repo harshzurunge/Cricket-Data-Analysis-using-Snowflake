@@ -1,6 +1,3 @@
-----------------------------------------------------------
--- 🔹 STEP 1: SET CONTEXT
-----------------------------------------------------------
 USE DATABASE CRICKET;
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
@@ -8,9 +5,7 @@ USE WAREHOUSE COMPUTE_WH;
 CREATE SCHEMA IF NOT EXISTS CRICKET.GOLD;
 USE SCHEMA CRICKET.GOLD;
 
-----------------------------------------------------------
--- 🔹 STEP 2: PLAYER VIEW
-----------------------------------------------------------
+-- PLAYER VIEW
 CREATE OR REPLACE VIEW PLAYER AS
 SELECT
     MATCH_TYPE_NUMBER,
@@ -18,15 +13,7 @@ SELECT
     PLAYER_NAME
 FROM CRICKET.SILVER.PLAYER_CLEAN;
 
-----------------------------------------------------------
--- 🔹 STEP 3: DELIVERY VIEW (ENHANCED)
-----------------------------------------------------------
-/*
-Enhancements:
-- Removed syntax error
-- Added analytics-ready flags
-*/
-
+-- DELIVERY VIEW 
 CREATE OR REPLACE VIEW DELIVERY AS
 SELECT
     MATCH_TYPE_NUMBER,
@@ -51,9 +38,7 @@ SELECT
 
 FROM CRICKET.SILVER.DELIVERY_CLEAN;
 
-----------------------------------------------------------
--- 🔹 STEP 4: MATCH VIEW (GOOD)
-----------------------------------------------------------
+-- MATCH VIEW
 CREATE OR REPLACE VIEW MATCH AS
 SELECT
     MATCH_TYPE_NUMBER,
@@ -92,6 +77,3 @@ SELECT
     TOSS_DECISION
 
 FROM CRICKET.SILVER.MATCH_CLEAN;
-
-
----------------------------------------------------------------------------
