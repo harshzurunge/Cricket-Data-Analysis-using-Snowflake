@@ -1,44 +1,23 @@
-/* 
-==========================================================
-📌 BRONZE LAYER - OPTIMIZED JSON PARSING VERSION
-==========================================================
-*/
-
-----------------------------------------------------------
--- 🔹 STEP 0: SET CONTEXT
-----------------------------------------------------------
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
 USE DATABASE CRICKET;
-
 CREATE SCHEMA IF NOT EXISTS CRICKET.BRONZE;
 
-----------------------------------------------------------
--- 🔹 STEP 1: STREAM
-----------------------------------------------------------
+-- STREAM
 USE SCHEMA CRICKET.RAW;
 
 CREATE OR REPLACE STREAM MATCH_RAW_STREAM
 ON TABLE MATCH_RAW_TBL
 APPEND_ONLY = TRUE;
 
-----------------------------------------------------------
--- 🔹 STEP 2: TABLES (same as before)
-----------------------------------------------------------
+-- TABLES
 USE SCHEMA CRICKET.BRONZE;
 
--- (Tables remain same — no change)
-
-----------------------------------------------------------
--- 🔹 STEP 3: PLAYER TABLE (NO CHANGE)
-----------------------------------------------------------
-MERGE INTO CRICKET.BRONZE.PLAYER_TABLE tgt
+    MERGE INTO CRICKET.BRONZE.PLAYER_TABLE tgt
 USING (
-
     WITH BASE_RAW AS (
         SELECT * FROM CRICKET.RAW.MATCH_RAW_STREAM
     )
-
     SELECT
         TRY_TO_NUMBER(raw.info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
         p.key::STRING AS COUNTRY,
@@ -69,16 +48,7 @@ WHEN NOT MATCHED THEN INSERT VALUES (
 );
 
 ----------------------------------------------------------
--- 🔹 STEP 4: DELIVERY TABLE (OPTIMIZED JSON PARSING)
-----------------------------------------------------------
-/*
-📌 KEY IMPROVEMENT:
-Instead of one big flatten chain,
-we break parsing into logical layers:
-
-RAW → INNINGS → OVERS → DELIVERIES
-*/
-
+-- DELIVERY TABLE 
 MERGE INTO CRICKET.BRONZE.DELIVERY_TABLE tgt
 USING (
 
@@ -86,7 +56,6 @@ USING (
         SELECT * FROM CRICKET.RAW.MATCH_RAW_STREAM
     ),
 
-    -- 🔹 LEVEL 1: INNINGS
     INNINGS_LEVEL AS (
         SELECT
             m.*,
@@ -96,12 +65,12 @@ USING (
         LATERAL FLATTEN(input => m.innings) i
     ),
 
-    -- 🔹 LEVEL 2: OVERS
     OVERS_LEVEL AS (
         SELECT
             MATCH_TYPE_NUMBER,
             INNINGS_DATA:value:team::STRING AS TEAM_NAME,
             o.value AS OVER_DATA,
+
             STG_FILE_NAME,
             STG_FILE_ROW_NUMBER,
             STG_FILE_HASHKEY,
@@ -110,7 +79,6 @@ USING (
         LATERAL FLATTEN(input => INNINGS_DATA:value:overs) o
     ),
 
-    -- 🔹 LEVEL 3: DELIVERIES
     DELIVERY_LEVEL AS (
         SELECT
             MATCH_TYPE_NUMBER,
@@ -127,7 +95,6 @@ USING (
         LATERAL FLATTEN(input => OVER_DATA:deliveries) d
     )
 
-    -- 🔹 FINAL SELECT
     SELECT
         MATCH_TYPE_NUMBER,
         TEAM_NAME,
@@ -188,9 +155,8 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.STG_FILE_HASHKEY,
     src.STG_MODIFIED_TS
 );
-----------------------------------------------------------
--- 🔹 STEP 5: MATCH TABLE (NO CHANGE)
-----------------------------------------------------------
+
+-- MATCH TABLE 
 MERGE INTO CRICKET.BRONZE.MATCH_TABLE tgt
 USING (
 
@@ -268,13 +234,8 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.STG_MODIFIED_TS
 );
 
-----------------------------------------------------------
--- 🔹 STEP 6: PERFORMANCE
-----------------------------------------------------------
+
+-- PERFORMANCE
 ALTER TABLE CRICKET.BRONZE.DELIVERY_TABLE 
 CLUSTER BY (MATCH_TYPE_NUMBER, OVER);
-
-----------------------------------------------------------
--- ✅ END
---------------------------------------------------
 

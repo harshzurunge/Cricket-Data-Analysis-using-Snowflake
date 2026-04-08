@@ -1,24 +1,3 @@
-/*
-==========================================================
-📌 SILVER LAYER - PRODUCTION GRADE IMPLEMENTATION
-📌 PROJECT: ICC Men's Cricket World Cup 2023 Analysis
-📌 PURPOSE:
-    - Clean and standardize Bronze data
-    - Handle nulls, formatting issues
-    - Prepare data for analytics (Gold layer)
-==========================================================
-
-✅ Key Features:
-- Reusable UDF (eliminates repetitive cleaning logic)
-- Incremental loading using MERGE
-- Standardized null handling (Unknown / None / 0)
-- Derived columns for analytics
-==========================================================
-*/
-
-----------------------------------------------------------
--- 🔹 STEP 1: SET CONTEXT
-----------------------------------------------------------
 USE DATABASE CRICKET; 
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
@@ -26,9 +5,8 @@ USE WAREHOUSE COMPUTE_WH;
 CREATE SCHEMA IF NOT EXISTS CRICKET.SILVER;
 USE SCHEMA CRICKET.SILVER;
 
-----------------------------------------------------------
--- 🔹 CLEANING FUNCTION (GOOD - NO CHANGE)
-----------------------------------------------------------
+
+-- CLEANING FUNCTION
 CREATE OR REPLACE FUNCTION CLEAN_TEXT(input STRING, default_val STRING)
 RETURNS STRING
 AS
@@ -40,9 +18,7 @@ $$
     END
 $$;
 
-----------------------------------------------------------
--- 🔹 PLAYER CLEAN
-----------------------------------------------------------
+-- PLAYER CLEAN
 MERGE INTO PLAYER_CLEAN tgt
 USING (
     SELECT
@@ -68,17 +44,13 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.stg_modified_ts
 );
 
-----------------------------------------------------------
--- 🔹 DELIVERY CLEAN (FIXED)
-----------------------------------------------------------
+-- DELIVERY CLEAN
 MERGE INTO DELIVERY_CLEAN tgt
 USING (
     SELECT
         d.match_type_number,
 
         CLEAN_TEXT(d.team_name, 'Unknown') AS team_name,
-
-        -- ✅ TRUST BRONZE BUT KEEP SAFE
         COALESCE(d.over, 0) AS over,
 
         CLEAN_TEXT(d.bowler, 'Unknown') AS bowler,
@@ -107,7 +79,6 @@ USING (
     WHERE d.match_type_number IS NOT NULL
 ) src
 
--- ✅ STRONGER UNIQUE KEY
 ON tgt.stg_file_hashkey = src.stg_file_hashkey
 AND tgt.over = src.over
 AND tgt.batter = src.batter
@@ -137,8 +108,7 @@ WHEN NOT MATCHED THEN INSERT VALUES (
 );
 
 ----------------------------------------------------------
--- 🔹 MATCH CLEAN (FIXED)
-----------------------------------------------------------
+-- MATCH CLEAN
 MERGE INTO MATCH_CLEAN tgt
 USING (
     SELECT
@@ -225,7 +195,8 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.stg_file_hashkey,
     src.stg_modified_ts
 );
-----------------------------------------------------------
--- ✅ END OF SILVER LAYER
-----------------------------------------------------------
-------------------------------------------------------------------------------------
+
+-- describe table cricket.silver.MATCH_CLEAN;
+-- describe table cricket.silver.PLAYER_CLEAN;
+-- describe table cricket.silver.DELIVERY_CLEAN;
+-- describe table cricket.bronze.PLAYER_TABLE;

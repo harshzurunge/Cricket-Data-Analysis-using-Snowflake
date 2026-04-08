@@ -1,26 +1,13 @@
-/* 
-==========================================================
-📌 PRODUCTION PIPELINE - SNOWFLAKE (MEDALLION ARCHITECTURE)
-RAW → BRONZE → SILVER → GOLD
-==========================================================
-*/
-
-----------------------------------------------------------
--- 🔹 STEP 0: CONTEXT
-----------------------------------------------------------
 USE DATABASE CRICKET;
 USE ROLE SYSADMIN;
 USE WAREHOUSE COMPUTE_WH;
 USE SCHEMA CRICKET.RAW;
-----------------------------------------------------------
--- 🔹 STEP 1: STREAMS
-----------------------------------------------------------
 
 -- RAW → BRONZE
 CREATE OR REPLACE STREAM CRICKET.RAW.RAW_MATCH_STREAM 
 ON TABLE CRICKET.RAW.MATCH_RAW_TBL 
 APPEND_ONLY = TRUE;
-
+ 
 -- BRONZE → SILVER
 CREATE OR REPLACE STREAM CRICKET.RAW.BRONZE_PLAYER_STREAM 
 ON TABLE CRICKET.BRONZE.PLAYER_TABLE;
@@ -31,9 +18,8 @@ ON TABLE CRICKET.BRONZE.MATCH_TABLE;
 CREATE OR REPLACE STREAM CRICKET.RAW.BRONZE_DELIVERY_STREAM 
 ON TABLE CRICKET.BRONZE.DELIVERY_TABLE;
 
-----------------------------------------------------------
--- 🔹 STEP 2: LOAD RAW
-----------------------------------------------------------
+
+-- LOAD RAW
 CREATE OR REPLACE TASK CRICKET.RAW.LOAD_RAW
 WAREHOUSE = COMPUTE_WH
 SCHEDULE = '5 MINUTE'
@@ -53,9 +39,7 @@ FROM (
 )
 ON_ERROR = 'CONTINUE';
 
-----------------------------------------------------------
--- 🔹 STEP 3: LOAD BRONZE
-----------------------------------------------------------
+-- LOAD BRONZE
 CREATE OR REPLACE TASK CRICKET.RAW.LOAD_BRONZE
 WAREHOUSE = COMPUTE_WH
 AFTER LOAD_RAW
@@ -230,9 +214,7 @@ VALUES (
 
 END;
 
-----------------------------------------------------------
--- 🔹 STEP 4: SILVER TASK (example: PLAYER)
-----------------------------------------------------------
+-- SILVER TASK
 CREATE OR REPLACE TASK CRICKET.RAW.LOAD_SILVER_PLAYER
 WAREHOUSE = COMPUTE_WH
 AFTER LOAD_BRONZE
@@ -251,9 +233,7 @@ WHEN NOT MATCHED THEN INSERT VALUES (
     src.stg_modified_ts
 );
 
-----------------------------------------------------------
--- 🔹 STEP 5: ACTIVATE TASKS
-----------------------------------------------------------
+-- ACTIVATE TASKS
 ALTER TASK CRICKET.RAW.LOAD_RAW RESUME;
 ALTER TASK CRICKET.RAW.LOAD_BRONZE RESUME;
 ALTER TASK CRICKET.RAW.LOAD_SILVER_PLAYER RESUME;
