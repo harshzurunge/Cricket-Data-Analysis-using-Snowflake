@@ -1,306 +1,259 @@
-use role sysadmin;
-use warehouse compute_wh;
-use schema cricket.consumption;
+/* 
+==========================================================
+📌 PRODUCTION PIPELINE - SNOWFLAKE (MEDALLION ARCHITECTURE)
+RAW → BRONZE → SILVER → GOLD
+==========================================================
+*/
 
-create or replace stream cricket.raw.for_match_stream on table cricket.raw.match_raw_tbl append_only = true;
-create or replace stream cricket.raw.for_player_stream on table cricket.raw.match_raw_tbl append_only = true;
-create or replace stream cricket.raw.for_delivery_stream on table cricket.raw.match_raw_tbl append_only = true;
+----------------------------------------------------------
+-- 🔹 STEP 0: CONTEXT
+----------------------------------------------------------
+USE DATABASE CRICKET;
+USE ROLE SYSADMIN;
+USE WAREHOUSE COMPUTE_WH;
+USE SCHEMA CRICKET.RAW;
+----------------------------------------------------------
+-- 🔹 STEP 1: STREAMS
+----------------------------------------------------------
 
+-- RAW → BRONZE
+CREATE OR REPLACE STREAM CRICKET.RAW.RAW_MATCH_STREAM 
+ON TABLE CRICKET.RAW.MATCH_RAW_TBL 
+APPEND_ONLY = TRUE;
 
-create or replace task cricket.raw.load_json_to_raw
-    warehouse = 'COMPUTE_WH'
-    schedule = '5 minute'
-    as
-        copy into cricket.raw.match_raw_tbl from 
-        (
-            select 
-                t.$1:meta::object as meta, 
-                t.$1:info::variant as info, 
-                t.$1:innings::array as innings, 
-                --
-                metadata$filename,
-                metadata$file_row_number,
-                metadata$file_content_key,
-                metadata$file_last_modified
-            from @cricket.land.my_stg/cricket/json (file_format => 'cricket.land.my_json_format') t
-        )
-        on_error = continue;
+-- BRONZE → SILVER
+CREATE OR REPLACE STREAM CRICKET.RAW.BRONZE_PLAYER_STREAM 
+ON TABLE CRICKET.BRONZE.PLAYER_TABLE;
 
+CREATE OR REPLACE STREAM CRICKET.RAW.BRONZE_MATCH_STREAM 
+ON TABLE CRICKET.BRONZE.MATCH_TABLE;
 
-create or replace task cricket.raw.load_to_clean_match
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_json_to_raw
-    when system$stream_has_data('cricket.raw.for_match_stream')
-    as
-    insert into cricket.clean.match_detail_clean 
-        select
-            info:match_type_number::int as match_type_number, 
-            info:event.name::text as event_name,
-            case
-            when 
-                info:event.match_number::text is not null then info:event.match_number::text
-            when 
-                info:event.stage::text is not null then info:event.stage::text
-            else
-                'NA'
-            end as match_stage,   
-            info:dates[0]::date as event_date,
-            date_part('year',info:dates[0]::date) as event_year,
-            date_part('month',info:dates[0]::date) as event_month,
-            date_part('day',info:dates[0]::date) as event_day,
-            info:match_type::text as match_type,
-            info:season::text as season,
-            info:team_type::text as team_type,
-            info:overs::text as overs,
-            info:city::text as city,
-            info:venue::text as venue, 
-            info:gender::text as gender,
-            info:teams[0]::text as first_team,
-            info:teams[1]::text as second_team,
-        case 
-            when info:outcome.winner is not null then 'Result Declared'
-            when info:outcome.result = 'tie' then 'Tie'
-            when info:outcome.result = 'no result' then 'No Result'
-            else info:outcome.result
-        end as matach_result,
-        case 
-            when info:outcome.winner is not null then info:outcome.winner
-            else 'NA'
-        end as winner,   
+CREATE OR REPLACE STREAM CRICKET.RAW.BRONZE_DELIVERY_STREAM 
+ON TABLE CRICKET.BRONZE.DELIVERY_TABLE;
 
-            -- info:officials.match_referees[0]::text as match_referee,
-            -- info:officials.reserve_umpires[0]::text as reserve_umpires,
-            -- info:officials.tv_umpires[0]::text as tv_umpires,
-            -- info:officials.umpires[0]::text as first_umpire,
-            -- info:officials.umpires[1]::text as second_umpire,
+----------------------------------------------------------
+-- 🔹 STEP 2: LOAD RAW
+----------------------------------------------------------
+CREATE OR REPLACE TASK CRICKET.RAW.LOAD_RAW
+WAREHOUSE = COMPUTE_WH
+SCHEDULE = '5 MINUTE'
+AS
+COPY INTO CRICKET.RAW.MATCH_RAW_TBL
+FROM (
+    SELECT 
+        t.$1:meta::OBJECT,
+        t.$1:info::VARIANT,
+        t.$1:innings::ARRAY,
+        METADATA$FILENAME,
+        METADATA$FILE_ROW_NUMBER,
+        METADATA$FILE_CONTENT_KEY,
+        METADATA$FILE_LAST_MODIFIED
+    FROM @CRICKET.LAND.MY_STG/CRICKET/JSON
+    (FILE_FORMAT => 'CRICKET.LAND.MY_JSON_FORMAT') t
+)
+ON_ERROR = 'CONTINUE';
 
-            info:toss.winner::text as toss_winner,
-            initcap(info:toss.decision::text) as toss_decision,
-            --
-            stg_file_name ,
-            stg_file_row_number,
-            stg_file_hashkey,
-            stg_modified_ts
-        from 
-            cricket.raw.for_match_stream;
+----------------------------------------------------------
+-- 🔹 STEP 3: LOAD BRONZE
+----------------------------------------------------------
+CREATE OR REPLACE TASK CRICKET.RAW.LOAD_BRONZE
+WAREHOUSE = COMPUTE_WH
+AFTER LOAD_RAW
+WHEN SYSTEM$STREAM_HAS_DATA('CRICKET.RAW.RAW_MATCH_STREAM')
+AS
+BEGIN
 
-
-create or replace task cricket.raw.load_to_clean_player
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_clean_match
-    when system$stream_has_data('cricket.raw.for_player_stream')
-    as
-    insert into cricket.clean.player_clean_tbl
-    select 
-        raw.info:match_type_number::int as match_type_number, 
-        p.key::text as country,
-        team.value:: text as player_name,
-        raw.stg_file_name ,
+-- PLAYER
+MERGE INTO CRICKET.BRONZE.PLAYER_TABLE tgt
+USING (
+    WITH BASE_RAW AS (
+        SELECT * FROM CRICKET.RAW.RAW_MATCH_STREAM
+    )
+    SELECT
+        TRY_TO_NUMBER(raw.info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
+        p.key::STRING AS COUNTRY,
+        team.value::STRING AS PLAYER_NAME,
+        raw.stg_file_name,
         raw.stg_file_row_number,
         raw.stg_file_hashkey,
         raw.stg_modified_ts
-    from cricket.raw.for_player_stream raw,
-    lateral flatten (input => raw.info:players) p,
-    lateral flatten (input => p.value) team; 
+    FROM BASE_RAW raw,
+    LATERAL FLATTEN(input => raw.info:players) p,
+    LATERAL FLATTEN(input => p.value) team
+) src
+ON tgt.stg_file_hashkey = src.stg_file_hashkey
+AND tgt.player_name = src.player_name
+WHEN NOT MATCHED THEN INSERT (
+    MATCH_TYPE_NUMBER, COUNTRY, PLAYER_NAME,
+    STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+    STG_FILE_HASHKEY, STG_MODIFIED_TS
+)
+VALUES (
+    src.MATCH_TYPE_NUMBER, src.COUNTRY, src.PLAYER_NAME,
+    src.stg_file_name, src.stg_file_row_number,
+    src.stg_file_hashkey, src.stg_modified_ts
+);
 
+-- MATCH
+MERGE INTO CRICKET.BRONZE.MATCH_TABLE tgt
+USING (
+    SELECT
+        TRY_TO_NUMBER(info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
+        info:event.name::STRING AS EVENT_NAME,
+        TRY_TO_NUMBER(info:event.match_number::STRING) AS MATCH_NUMBER,
+        TRY_TO_DATE(info:dates[0]::STRING) AS EVENT_DATE,
+        info:match_type::STRING AS MATCH_TYPE,
+        info:season::STRING AS SEASON,
+        info:team_type::STRING AS TEAM_TYPE,
+        TRY_TO_NUMBER(info:overs::STRING) AS OVERS,
+        info:city::STRING AS CITY,
+        info:venue::STRING AS VENUE,
+        info:gender::STRING AS GENDER,
+        info:teams[0]::STRING AS FIRST_TEAM,
+        info:teams[1]::STRING AS SECOND_TEAM,
+        info:outcome.winner::STRING AS WINNER,
+        TRY_TO_NUMBER(info:outcome.by.runs::STRING) AS WON_BY_RUNS,
+        TRY_TO_NUMBER(info:outcome.by.wickets::STRING) AS WON_BY_WICKETS,
+        info:player_of_match[0]::STRING AS PLAYER_OF_MATCH,
+        info:officials.match_referees[0]::STRING AS MATCH_REFEREE,
+        info:officials.reserve_umpires[0]::STRING AS RESERVE_UMPIRES,
+        info:officials.tv_umpires[0]::STRING AS TV_UMPIRES,
+        info:officials.umpires[0]::STRING AS FIRST_UMPIRE,
+        info:officials.umpires[1]::STRING AS SECOND_UMPIRE,
+        info:toss.winner::STRING AS TOSS_WINNER,
+        info:toss.decision::STRING AS TOSS_DECISION,
+        stg_file_name, stg_file_row_number,
+        stg_file_hashkey, stg_modified_ts
+    FROM CRICKET.RAW.RAW_MATCH_STREAM
+) src
+ON tgt.stg_file_hashkey = src.stg_file_hashkey
+WHEN NOT MATCHED THEN INSERT (
+    MATCH_TYPE_NUMBER, EVENT_NAME, MATCH_NUMBER, EVENT_DATE,
+    MATCH_TYPE, SEASON, TEAM_TYPE, OVERS,
+    CITY, VENUE, GENDER,
+    FIRST_TEAM, SECOND_TEAM, WINNER,
+    WON_BY_RUNS, WON_BY_WICKETS,
+    PLAYER_OF_MATCH,
+    MATCH_REFEREE, RESERVE_UMPIRES, TV_UMPIRES,
+    FIRST_UMPIRE, SECOND_UMPIRE,
+    TOSS_WINNER, TOSS_DECISION,
+    STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+    STG_FILE_HASHKEY, STG_MODIFIED_TS
+)
+VALUES (
+    src.MATCH_TYPE_NUMBER, src.EVENT_NAME, src.MATCH_NUMBER, src.EVENT_DATE,
+    src.MATCH_TYPE, src.SEASON, src.TEAM_TYPE, src.OVERS,
+    src.CITY, src.VENUE, src.GENDER,
+    src.FIRST_TEAM, src.SECOND_TEAM, src.WINNER,
+    src.WON_BY_RUNS, src.WON_BY_WICKETS,
+    src.PLAYER_OF_MATCH,
+    src.MATCH_REFEREE, src.RESERVE_UMPIRES, src.TV_UMPIRES,
+    src.FIRST_UMPIRE, src.SECOND_UMPIRE,
+    src.TOSS_WINNER, src.TOSS_DECISION,
+    src.stg_file_name, src.stg_file_row_number,
+    src.stg_file_hashkey, src.stg_modified_ts
+);
 
-create or replace task cricket.raw.load_to_clean_delivery
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_clean_player
-    when system$stream_has_data('cricket.raw.for_delivery_stream')
-    as
-    insert into cricket.clean.delivery_clean_tbl 
-    select
-        m.info:match_type_number::int as match_type_number,
-        i.value:team::text as team_name,
-        o.value:over::int+1 as over,
-        d.value:bowler::text as bowler,
-        d.value:batter::text as batter,
-        d.value:non_striker::text as non_striker,
-        d.value:runs.batter::text as runs,
-        d.value:runs.extras::text as extras,
-        d.value:runs.total::text as total,
-        e.key::text as extra_type,
-        e.value::number as extra_runs,
-        w.value:player_out::text as player_out,
-        w.value:kind::text as player_out_kind,
-        w.value:fielders::variant as player_out_fielders,
-        m.stg_file_name ,
-        m.stg_file_row_number,
-        m.stg_file_hashkey,
-        m.stg_modified_ts
-    from cricket.raw.for_delivery_stream m,
-    lateral flatten (input => m.innings) i,
-    lateral flatten (input => i.value:overs) o,
-    lateral flatten(input => o.value:deliveries) d,
-    lateral flatten (input => d.value:extras, outer => True) e,
-    lateral flatten (input => d.value:wickets, outer => True) w;
+-- DELIVERY
+MERGE INTO CRICKET.BRONZE.DELIVERY_TABLE tgt
+USING (
+    WITH BASE_RAW AS (
+        SELECT * FROM CRICKET.RAW.RAW_MATCH_STREAM
+    ),
+    INNINGS_LEVEL AS (
+        SELECT m.*, TRY_TO_NUMBER(m.info:match_type_number::STRING) AS MATCH_TYPE_NUMBER,
+               i.value AS INNINGS_DATA
+        FROM BASE_RAW m,
+        LATERAL FLATTEN(input => m.innings) i
+    ),
+    OVERS_LEVEL AS (
+        SELECT MATCH_TYPE_NUMBER,
+               INNINGS_DATA:value:team::STRING AS TEAM_NAME,
+               o.value AS OVER_DATA,
+               STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+               STG_FILE_HASHKEY, STG_MODIFIED_TS
+        FROM INNINGS_LEVEL,
+        LATERAL FLATTEN(input => INNINGS_DATA:value:overs) o
+    ),
+    DELIVERY_LEVEL AS (
+        SELECT MATCH_TYPE_NUMBER, TEAM_NAME,
+               TRY_TO_NUMBER(OVER_DATA:over::STRING) AS OVER,
+               d.value AS DELIVERY_DATA,
+               STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+               STG_FILE_HASHKEY, STG_MODIFIED_TS
+        FROM OVERS_LEVEL,
+        LATERAL FLATTEN(input => OVER_DATA:deliveries) d
+    )
+    SELECT
+        MATCH_TYPE_NUMBER, TEAM_NAME, OVER,
+        DELIVERY_DATA:bowler::STRING AS BOWLER,
+        DELIVERY_DATA:batter::STRING AS BATTER,
+        DELIVERY_DATA:non_striker::STRING AS NON_STRIKER,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.batter::STRING) AS RUNS,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.extras::STRING) AS EXTRAS,
+        TRY_TO_NUMBER(DELIVERY_DATA:runs.total::STRING) AS TOTAL,
+        DELIVERY_DATA:review:by::STRING AS REVIEW_BY_TEAM,
+        DELIVERY_DATA:review:decision::STRING AS REVIEW_DECISION,
+        DELIVERY_DATA:review:type::STRING AS REVIEW_TYPE,
+        e.key::STRING AS EXTRA_TYPE,
+        w.value:player_out::STRING AS PLAYER_OUT,
+        w.value:kind::STRING AS PLAYER_OUT_KIND,
+        f.value:name::STRING AS PLAYER_OUT_FIELDER,
+        STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+        STG_FILE_HASHKEY, STG_MODIFIED_TS
+    FROM DELIVERY_LEVEL
+    LEFT JOIN LATERAL FLATTEN(input => DELIVERY_DATA:extras, OUTER => TRUE) e
+    LEFT JOIN LATERAL FLATTEN(input => DELIVERY_DATA:wickets, OUTER => TRUE) w
+    LEFT JOIN LATERAL FLATTEN(input => w.value:fielders, OUTER => TRUE) f
+) src
+ON tgt.stg_file_hashkey = src.stg_file_hashkey
+AND tgt.over = src.over
+AND tgt.batter = src.batter
+WHEN NOT MATCHED THEN INSERT (
+    MATCH_TYPE_NUMBER, TEAM_NAME, OVER,
+    BOWLER, BATTER, NON_STRIKER,
+    RUNS, EXTRAS, TOTAL,
+    REVIEW_BY_TEAM, REVIEW_DECISION, REVIEW_TYPE,
+    EXTRA_TYPE, PLAYER_OUT, PLAYER_OUT_KIND, PLAYER_OUT_FIELDER,
+    STG_FILE_NAME, STG_FILE_ROW_NUMBER,
+    STG_FILE_HASHKEY, STG_MODIFIED_TS
+)
+VALUES (
+    src.MATCH_TYPE_NUMBER, src.TEAM_NAME, src.OVER,
+    src.BOWLER, src.BATTER, src.NON_STRIKER,
+    src.RUNS, src.EXTRAS, src.TOTAL,
+    src.REVIEW_BY_TEAM, src.REVIEW_DECISION, src.REVIEW_TYPE,
+    src.EXTRA_TYPE, src.PLAYER_OUT, src.PLAYER_OUT_KIND, src.PLAYER_OUT_FIELDER,
+    src.STG_FILE_NAME, src.STG_FILE_ROW_NUMBER,
+    src.STG_FILE_HASHKEY, src.STG_MODIFIED_TS
+);
 
+END;
 
-create or replace task cricket.raw.load_to_team_dim
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_clean_delivery
-    as
-    insert into cricket.consumption.team_dim(team_name) (
-        select distinct team_name from(
-        select first_team as team_name from cricket.clean.match_detail_clean
-        union all
-        select second_team as team_name from cricket.clean.match_detail_clean
-        )
-        minus
-        select team_name from cricket.consumption.team_dim);
+----------------------------------------------------------
+-- 🔹 STEP 4: SILVER TASK (example: PLAYER)
+----------------------------------------------------------
+CREATE OR REPLACE TASK CRICKET.RAW.LOAD_SILVER_PLAYER
+WAREHOUSE = COMPUTE_WH
+AFTER LOAD_BRONZE
+WHEN SYSTEM$STREAM_HAS_DATA('CRICKET.BRONZE.BRONZE_PLAYER_STREAM')
+AS
+MERGE INTO CRICKET.SILVER.PLAYER_CLEAN tgt
+USING CRICKET.BRONZE.BRONZE_PLAYER_STREAM src
+ON tgt.stg_file_hashkey = src.stg_file_hashkey
+AND tgt.player_name = src.player_name
+WHEN NOT MATCHED THEN INSERT VALUES (
+    src.match_type_number,
+    CLEAN_TEXT(src.country,'Unknown'),
+    CLEAN_TEXT(src.player_name,'Unknown'),
+    src.stg_file_name,
+    src.stg_file_hashkey,
+    src.stg_modified_ts
+);
 
-
-create or replace task cricket.raw.load_to_player_dim
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_clean_delivery
-    as
-    insert into cricket.consumption.player_dim(team_id, player_name)
-    (
-        select b.team_id, a.player_name
-        from 
-            cricket.clean.player_clean_tbl a join cricket.consumption.team_dim b
-            on a.country = b.team_name
-        group by
-            b.team_id,
-            a.player_name
-        minus
-        select team_id, player_name from cricket.consumption.player_dim
-    );
-
-
-create or replace task cricket.raw.load_to_venue_dim
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_clean_delivery
-    as
-    insert into cricket.consumption.venue_dim(venue_name, city)
-    (
-        select 
-            venue, 
-            case when city  is null  then 'NA'
-            else city
-            end as city 
-        from 
-            cricket.clean.match_detail_clean 
-        group by 
-            venue, city
-        minus
-        select venue_name, city from cricket.consumption.venue_dim
-    );
-
-
-create or replace task cricket.raw.load_to_match_fact
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_team_dim, cricket.raw.load_to_player_dim, cricket.raw.load_to_venue_dim
-    as
-    insert into cricket.consumption.match_fact 
-    select a.* from 
-    (
-        select 
-            m.match_type_number as match_id,
-            dd.date_id as date_id,
-            0 as referee_id,
-            ftd.team_id as first_team_id,
-            std.team_id as second_team_id,
-            mtd.match_type_id as match_type_id,
-            vd.venue_id as venue_id,
-            50 as total_overs,
-            6 as balls_per_overs,
-            max(case when d.team_name = m.first_team then  d.over else 0 end ) as OVERS_PLAYED_BY_TEAM_A,
-            sum(case when d.team_name = m.first_team then  1 else 0 end ) as balls_PLAYED_BY_TEAM_A,
-            sum(case when d.team_name = m.first_team then  d.extras else 0 end ) as extra_balls_PLAYED_BY_TEAM_A,
-            sum(case when d.team_name = m.first_team then  d.extra_runs else 0 end ) as extra_runs_scored_BY_TEAM_A,
-            0 fours_by_team_a,
-            0 sixes_by_team_a,
-            (sum(case when d.team_name = m.first_team then  d.runs else 0 end ) + sum(case when d.team_name = m.first_team then  d.extra_runs else 0 end ) ) as total_runs_scored_BY_TEAM_A,
-            sum(case when d.team_name = m.first_team and player_out is not null then  1 else 0 end ) as wicket_lost_by_team_a,    
-            
-            max(case when d.team_name = m.second_team then  d.over else 0 end ) as OVERS_PLAYED_BY_TEAM_B,
-            sum(case when d.team_name = m.second_team then  1 else 0 end ) as balls_PLAYED_BY_TEAM_B,
-            sum(case when d.team_name = m.second_team then  d.extras else 0 end ) as extra_balls_PLAYED_BY_TEAM_B,
-            sum(case when d.team_name = m.second_team then  d.extra_runs else 0 end ) as extra_runs_scored_BY_TEAM_B,
-            0 fours_by_team_b,
-            0 sixes_by_team_b,
-            (sum(case when d.team_name = m.second_team then  d.runs else 0 end ) + sum(case when d.team_name = m.second_team then  d.extra_runs else 0 end ) ) as total_runs_scored_BY_TEAM_B,
-            sum(case when d.team_name = m.second_team and player_out is not null then  1 else 0 end ) as wicket_lost_by_team_b,
-            tw.team_id as toss_winner_team_id,
-            m.toss_decision as toss_decision,
-            m.matach_result as matach_result,
-            mw.team_id as winner_team_id
-            
-        from 
-            cricket.clean.match_detail_clean m
-            join cricket.consumption.date_dim dd on m.event_date = dd.full_dt
-            join cricket.consumption.team_dim ftd on m.first_team = ftd.team_name 
-            join cricket.consumption.team_dim std on m.second_team = std.team_name 
-            join cricket.consumption.match_type_dim mtd on m.match_type = mtd.match_type
-            join cricket.consumption.venue_dim vd on m.venue = vd.venue_name and m.city = vd.city
-            join cricket.clean.delivery_clean_tbl d  on d.match_type_number = m.match_type_number 
-            join cricket.consumption.team_dim tw on m.toss_winner = tw.team_name 
-            join cricket.consumption.team_dim mw on m.winner= mw.team_name 
-            --where m.match_type_number = 4686
-        group by
-            m.match_type_number,
-            dd.date_id,
-            referee_id,
-            first_team_id,
-            second_team_id,
-            mtd.match_type_id,
-            vd.venue_id,
-            total_overs,
-            toss_winner_team_id,
-            m.toss_decision,
-            m.match_result,
-            winner_team_id
-    ) a
-    left join cricket.consumption.match_fact b on a.match_id = b.match_id
-    where b.match_id is null    
-    ;
-
-
-
-create or replace task cricket.raw.load_delivery_fact
-    warehouse = 'COMPUTE_WH'
-    after cricket.raw.load_to_match_fact
-    as
-    insert into cricket.consumption.delivery_fact
-    select a.* from
-    (
-        select 
-            d.match_type_number as match_id,
-            td.team_id,
-            bpd.player_id as bower_id, 
-            spd.player_id batter_id, 
-            nspd.player_id as non_stricker_id,
-            d.over,
-            d.runs,
-            case when d.extra_runs is null then 0 else d.extra_runs end as extra_runs,
-            case when d.extra_type is null then 'None' else d.extra_type end as extra_type,
-            case when d.player_out is null then 'None' else d.player_out end as player_out,
-            case when d.player_out_kind is null then 'None' else d.player_out_kind end as player_out_kind
-        from 
-            cricket.clean.delivery_clean_tbl d
-            join team_dim td on d.team_name = td.team_name
-            join player_dim bpd on d.bowler = bpd.player_name
-            join player_dim spd on d.batter = spd.player_name
-            join player_dim nspd on d.non_striker = nspd.player_name
-    ) a
-    left join cricket.consumption.delivery_fact b on a.match_id = b.match_id 
-    where b.match_id is null;
-
-
-use role accountadmin;
-grant execute task, execute managed task on account to role sysadmin;
-use role sysadmin;
-
-
-
-alter task cricket.raw.load_delivery_fact resume;
-alter task cricket.raw.load_to_match_fact resume;
-alter task cricket.raw.load_to_venue_dim resume;
-alter task cricket.raw.load_to_player_dim resume;
-alter task cricket.raw.load_to_team_dim resume;
-alter task cricket.raw.load_to_clean_delivery resume;
-alter task cricket.raw.load_to_clean_player resume;
-alter task cricket.raw.load_to_clean_match resume;
-alter task cricket.raw.load_json_to_raw resume;
+----------------------------------------------------------
+-- 🔹 STEP 5: ACTIVATE TASKS
+----------------------------------------------------------
+ALTER TASK CRICKET.RAW.LOAD_RAW RESUME;
+ALTER TASK CRICKET.RAW.LOAD_BRONZE RESUME;
+ALTER TASK CRICKET.RAW.LOAD_SILVER_PLAYER RESUME;
